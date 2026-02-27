@@ -1,7 +1,8 @@
 import math
 #1
 deg = float(input())
-print(f"{math.radians(deg):.6f}")
+rad = math.radians(deg)
+print(round(rad, 6))
 #2
 h = float(input())
 b1 = float(input())

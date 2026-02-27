@@ -1,17 +1,21 @@
 import json
 
-with open("sample-data.json", "r", encoding="utf-8") as f:
+with open("sample-data.json", "r") as f:
     data = json.load(f)
 
+#заголовок
 print("Interface Status")
 print("=" * 80)
-print(f"{'DN':50} {'Description':20} {'Speed':7} {'MTU':5}")
-print(f"{'-'*50} {'-'*20}  {'-'*6}  {'-'*6}")
+print("DN".ljust(50), "Description".ljust(20), "Speed".ljust(7), "MTU")
+print("-" * 50, "-" * 20, "-" * 6, "-" * 6)
 
-for item in data.get("imdata", []):
-    attrs = item.get("l1PhysIf", {}).get("attributes", {})
-    dn = attrs.get("dn", "")
-    descr = attrs.get("descr", "")
-    speed = attrs.get("speed", "")
-    mtu = attrs.get("mtu", "")
-    print(f"{dn:50} {descr:20}  {speed:6}  {mtu:6}")
+#строки
+for item in data["imdata"]:
+    attrs = item["l1PhysIf"]["attributes"]
+
+    dn = attrs["dn"]
+    descr = attrs["descr"]
+    speed = attrs["speed"]
+    mtu = attrs["mtu"]
+
+    print(dn.ljust(50), descr.ljust(20), speed.ljust(7), mtu)
