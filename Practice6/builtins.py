@@ -2,25 +2,25 @@ from functools import reduce
 
 nums = [1, 2, 3, 4]
 
-# map
+#map
 print("map:", list(map(lambda x: x*2, nums)))
 
-# filter
+#filter
 print("filter:", list(filter(lambda x: x%2==0, nums)))
 
-# reduce
+#reduce
 print("reduce:", reduce(lambda a, b: a+b, nums))
 
-# enumerate
+#enumerate
 for i, v in enumerate(nums):
     print("index:", i, "value:", v)
 
-# zip
+#zip
 names = ["A", "B", "C", "D"]
 for n, num in zip(names, nums):
     print(n, num)
 
-# type conversion
+#type conversion
 x = "10"
 print(type(x))
 print(int(x))
