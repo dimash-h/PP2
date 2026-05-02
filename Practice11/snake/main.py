@@ -2,44 +2,46 @@ import pygame
 import sys
 import random
 
-# Initialize Pygame
+# Инициализация Pygame
 pygame.init()
 
-# Constants
+# Константы
 WIDTH = 600
 HEIGHT = 400
 BLOCK_SIZE = 20
 
-# Colors
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREEN = (0, 255, 0)  # Snake color
-RED   = (255, 0, 0)  # Food weight 1
-YELLOW= (255, 255, 0) # Food weight 2
-BLUE  = (0, 0, 255)  # Food weight 3
+# Цвета
+from color_palette import *
 
-FOOD_TIMER_MS = 5000 # Food disappears after 5 seconds
+WHITE = colorWHITE
+BLACK = colorBLACK
+GREEN = colorGREEN  # Цвет змейки
+RED   = colorRED  # Еда с весом 1
+YELLOW= colorYELLOW # Еда с весом 2
+BLUE  = colorBLUE  # Еда с весом 3
 
-# Setup Display
+FOOD_TIMER_MS = 5000 # Еда исчезает через 5 секунд
+
+# Настройка экрана
 DISPLAYSURF = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Snake")
 
-# Fonts
+# Шрифты
 font = pygame.font.SysFont("Verdana", 20)
 font_large = pygame.font.SysFont("Verdana", 50)
 
 def generate_food(snake_body):
     """
-    Generates a random position and weight for the food.
-    Ensures that the food does not spawn inside the wall or on the snake's body.
-    Returns a dictionary with position, weight, and spawn time.
+    Генерирует случайную позицию и вес для еды.
+    Убеждается, что еда не появляется внутри стены или на теле змейки.
+    Возвращает словарь с позицией, весом и временем появления.
     """
     while True:
-        # Generate random coordinates aligned with the grid
+        # Генерация случайных координат с выравниванием по сетке
         food_x = random.randrange(0, WIDTH, BLOCK_SIZE)
         food_y = random.randrange(0, HEIGHT, BLOCK_SIZE)
         
-        # Check if the food is on the snake's body
+        # Проверка, что еда не на теле змейки
         if [food_x, food_y] not in snake_body:
             weight = random.choice([1, 2, 3])
             return {
@@ -49,14 +51,14 @@ def generate_food(snake_body):
             }
 
 def game_over_screen(score, level):
-    """Displays the Game Over screen with final score and level."""
+    """Отображает экран Game Over с финальным счетом и уровнем."""
     DISPLAYSURF.fill(BLACK)
     
-    # Render texts
+    # Отрисовка текста
     go_text = font_large.render("Game Over!", True, RED)
     score_text = font.render(f"Final Score: {score} | Final Level: {level}", True, WHITE)
     
-    # Center texts
+    # Центрирование текста
     go_rect = go_text.get_rect(center=(WIDTH/2, HEIGHT/2 - 20))
     score_rect = score_text.get_rect(center=(WIDTH/2, HEIGHT/2 + 30))
     
@@ -69,33 +71,33 @@ def game_over_screen(score, level):
     sys.exit()
 
 def main():
-    # Initial Snake position and body
+    # Начальная позиция змейки и её тело
     snake_pos = [100, 60]
     snake_body = [[100, 60], [80, 60], [60, 60]]
     
-    # Generate initial food
+    # Генерация первой еды
     food = generate_food(snake_body)
     food_spawn = True
     
-    # Movement variables
+    # Переменные направления
     direction = 'RIGHT'
     change_to = direction
     
-    # Game state variables
+    # Переменные состояния игры
     score = 0
     level = 1
-    speed = 10 # Initial frames per second (speed)
+    speed = 10 # Начальное количество кадров в секунду (скорость)
     
     clock = pygame.time.Clock()
 
     while True:
-        # 1. Event Handling
+        # 1. Обработка событий
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             
-            # Handle key presses to change direction
+            # Обработка нажатий клавиш для смены направления
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
                     change_to = 'UP'
@@ -106,7 +108,7 @@ def main():
                 if event.key == pygame.K_RIGHT:
                     change_to = 'RIGHT'
 
-        # Prevent snake from reversing its direction
+        # Предотвращение движения змейки в противоположном направлении
         if change_to == 'UP' and direction != 'DOWN':
             direction = 'UP'
         if change_to == 'DOWN' and direction != 'UP':
@@ -116,7 +118,7 @@ def main():
         if change_to == 'RIGHT' and direction != 'LEFT':
             direction = 'RIGHT'
 
-        # 2. Move Snake
+        # 2. Движение змейки
         if direction == 'UP':
             snake_pos[1] -= BLOCK_SIZE
         if direction == 'DOWN':
@@ -126,60 +128,60 @@ def main():
         if direction == 'RIGHT':
             snake_pos[0] += BLOCK_SIZE
 
-        # 3. Snake body growing mechanism
+        # 3. Механизм роста тела змейки
         snake_body.insert(0, list(snake_pos))
         
-        # Check if food is eaten
+        # Проверка, съедена ли еда
         if snake_pos[0] == food['pos'][0] and snake_pos[1] == food['pos'][1]:
             score += food['weight']
-            # Increase level every 4 score points collected
+            # Увеличение уровня каждые 4 очка
             new_level = 1 + (score // 4)
             if new_level > level:
-                speed += 2 * (new_level - level) # Increase speed dynamically
+                speed += 2 * (new_level - level) # Динамическое увеличение скорости
                 level = new_level
             food_spawn = False
         else:
-            # If food is not eaten, remove the tail segment
+            # Если еда не съедена, удаляем последний сегмент хвоста
             snake_body.pop()
 
-        # Check if food timer has expired
+        # Проверка истечения таймера еды
         current_time = pygame.time.get_ticks()
         if current_time - food['time'] > FOOD_TIMER_MS:
-            food_spawn = False # Force respawn
+            food_spawn = False # Принудительное создание новой еды
 
-        # Generate new food if needed
+        # Генерация новой еды при необходимости
         if not food_spawn:
             food = generate_food(snake_body)
         food_spawn = True
 
-        # 4. Check Collisions (Game Over logic)
-        # Border (wall) collision check
+        # 4. Проверка столкновений (логика Game Over)
+        # Проверка столкновения с границами экрана (стенами)
         if snake_pos[0] < 0 or snake_pos[0] > WIDTH - BLOCK_SIZE:
             game_over_screen(score, level)
         if snake_pos[1] < 0 or snake_pos[1] > HEIGHT - BLOCK_SIZE:
             game_over_screen(score, level)
 
-        # Self collision check
+        # Проверка столкновения с собственным телом
         for block in snake_body[1:]:
             if snake_pos[0] == block[0] and snake_pos[1] == block[1]:
                 game_over_screen(score, level)
 
-        # 5. Drawing phase
-        DISPLAYSURF.fill(BLACK) # Clear screen
+        # 5. Фаза отрисовки
+        DISPLAYSURF.fill(BLACK) # Очистка экрана
 
-        # Draw Snake
+        # Отрисовка змейки
         for pos in snake_body:
             pygame.draw.rect(DISPLAYSURF, GREEN, pygame.Rect(pos[0], pos[1], BLOCK_SIZE, BLOCK_SIZE))
             
-        # Draw Food based on its weight
+        # Отрисовка еды в зависимости от её веса
         food_color = {1: RED, 2: YELLOW, 3: BLUE}[food['weight']]
         pygame.draw.rect(DISPLAYSURF, food_color, pygame.Rect(food['pos'][0], food['pos'][1], BLOCK_SIZE, BLOCK_SIZE))
 
-        # Show Score and Level in top-left
+        # Отображение счета и уровня в левом верхнем углу
         score_text = font.render(f"Score: {score}  |  Level: {level}", True, WHITE)
         DISPLAYSURF.blit(score_text, (10, 10))
 
-        # Refresh display and tick clock
+        # Обновление экрана и счетчик кадров
         pygame.display.update()
         clock.tick(speed)
 

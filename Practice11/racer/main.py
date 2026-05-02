@@ -27,6 +27,17 @@ SCREEN_HEIGHT = 600
 DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Racer")
 
+# Load Resources
+image_background = pygame.image.load('resources/AnimatedStreet.png')
+image_player = pygame.image.load('resources/Player.png')
+image_enemy = pygame.image.load('resources/Enemy.png')
+
+# Load and play background music
+pygame.mixer.music.load('resources/background.wav')
+pygame.mixer.music.play(-1)
+
+sound_crash = pygame.mixer.Sound('resources/crash.wav')
+
 # Fonts
 font = pygame.font.SysFont("Verdana", 60)
 font_small = pygame.font.SysFont("Verdana", 20)
@@ -43,8 +54,7 @@ class Enemy(pygame.sprite.Sprite):
     """Enemy car class dropping from the top."""
     def __init__(self):
         super().__init__() 
-        self.image = pygame.Surface((40, 60))
-        self.image.fill(RED) # Represent enemy with red rectangle
+        self.image = image_enemy
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), 0)
 
@@ -61,8 +71,7 @@ class Player(pygame.sprite.Sprite):
     """Player car controlled by left and right arrow keys."""
     def __init__(self):
         super().__init__() 
-        self.image = pygame.Surface((40, 60))
-        self.image.fill(BLUE) # Represent player with blue rectangle
+        self.image = image_player
         self.rect = self.image.get_rect()
         self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 80)
         
@@ -140,7 +149,7 @@ def main():
                 sys.exit()
 
         # Draw Background
-        DISPLAYSURF.fill(GRAY)
+        DISPLAYSURF.blit(image_background, (0, 0))
 
         # Draw Coins Score at top right
         coin_text = font_small.render(f"Coins: {COIN_SCORE}", True, WHITE)
@@ -168,6 +177,9 @@ def main():
 
         # Check collision between Player and Enemies
         if pygame.sprite.spritecollideany(P1, enemies):
+            sound_crash.play()
+            pygame.mixer.music.stop()
+            
             # Fill screen red and show Game Over
             DISPLAYSURF.fill(RED)
             DISPLAYSURF.blit(game_over, (30, 250))
