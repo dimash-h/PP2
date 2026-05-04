@@ -3,6 +3,7 @@ import sys
 from game import GameState, WIDTH, HEIGHT, BLOCK_SIZE
 from config import load_settings, save_settings
 from db import init_db, save_score, get_top_10, get_personal_best
+#Главный файл — окно, меню, отрисовка, игровой цикл
 
 pygame.init()
 pygame.mixer.init()
@@ -34,7 +35,7 @@ settings = load_settings()
 
 def draw_text(text, fnt, color, surface, x, y, center=False):
     """
-    Универсальная функция для отрисовки текста на экране.
+    Универсальная функция для отрисовки текста на экране
     """
     textobj = fnt.render(text, True, color)
     textrect = textobj.get_rect()
@@ -45,12 +46,11 @@ def draw_text(text, fnt, color, surface, x, y, center=False):
     surface.blit(textobj, textrect)
     return textrect
 
-mouse_was_down = False
+mouse_was_down = False # Чтобы кнопка не нажималась несколько раз при зажатой мышке
 
 def button(text, x, y, w, h, inactive_color, active_color, action=None):
     """
     Отрисовка и обработка кнопок. Возвращает True, если на кнопку нажали
-    (с защитой от случайного сквозного прокликивания на следующие меню).
     """
     global mouse_was_down
     mouse = pygame.mouse.get_pos()
@@ -60,8 +60,8 @@ def button(text, x, y, w, h, inactive_color, active_color, action=None):
         mouse_was_down = False
         
     clicked = False
-    if x + w > mouse[0] > x and y + h > mouse[1] > y:
-        pygame.draw.rect(DISPLAYSURF, active_color, (x, y, w, h))
+    if x + w > mouse[0] > x and y + h > mouse[1] > y: # Мышь внутри кнопки
+        pygame.draw.rect(DISPLAYSURF, active_color, (x, y, w, h)) # Подсвечиваем кнопку
         if click[0] == 1 and not mouse_was_down:
             mouse_was_down = True
             clicked = True
@@ -73,7 +73,7 @@ def button(text, x, y, w, h, inactive_color, active_color, action=None):
 
 def get_text_input(prompt, x, y):
     """
-    Окно для ввода текста (например, имени пользователя).
+    Окно для ввода текста.
     """
     input_text = ""
     active = True
@@ -112,11 +112,11 @@ def main_menu():
 
         draw_text("Snake Game", font_large, GREEN, DISPLAYSURF, WIDTH//2, 80, center=True)
         
-        if username:
+        if username: # Показываем имя игрока
             draw_text(f"Player: {username}", font, WHITE, DISPLAYSURF, WIDTH//2, 130, center=True)
         
         if button("Play", 200, 160, 200, 40, GRAY, WHITE):
-            if not username:
+            if not username: # Если имя не введено, запрашиваем
                 username = get_text_input("Enter Username:", WIDTH//2, HEIGHT//2)
             if username:
                 pb = get_personal_best(username)
@@ -133,7 +133,7 @@ def main_menu():
 
 def leaderboard_screen():
     """
-    Экран таблицы лидеров (топ-10 игроков из БД).
+    Экран таблицы лидеров
     """
     top10 = get_top_10()
     while True:
@@ -143,7 +143,7 @@ def leaderboard_screen():
         y = 100
         for i, row in enumerate(top10):
             # row = (username, score, level, played_at)
-            text = f"{i+1}. {row[0][:10]} - Score: {row[1]} (Lvl {row[2]})"
+            text = f"{i+1}. {row[0][:10]} - Score: {row[1]} (Lvl {row[2]})" #обрезаем имя до 10 символов
             draw_text(text, font, WHITE, DISPLAYSURF, WIDTH//2, y, center=True)
             y += 25
             
@@ -177,7 +177,7 @@ def settings_screen():
         if button(f"Sound: {sound_status}", 150, 180, 300, 40, GRAY, WHITE):
             settings["sound"] = not settings["sound"]
             
-        # Color picker
+        # Выбор цвета змейки
         draw_text("Snake Color:", font, WHITE, DISPLAYSURF, WIDTH//2, 250, center=True)
         c_idx = 0
         try:
@@ -186,7 +186,7 @@ def settings_screen():
             pass
             
         if button(f"Color: {color_names[c_idx]}", 150, 280, 300, 40, GRAY, WHITE):
-            c_idx = (c_idx + 1) % len(colors)
+            c_idx = (c_idx + 1) % len(colors) # Следующий цвет по кругу
             settings["snake_color"] = list(colors[c_idx])
             
         if button("Save & Back", 200, 350, 200, 40, GRAY, WHITE):
@@ -205,7 +205,6 @@ def game_over_screen(username, score, level, pb):
     Экран конца игры. Показывает финальный счет, уровень и личный рекорд.
     Сохраняет результат в базу данных.
     """
-    # Save to db
     save_score(username, score, level)
     pygame.mixer.music.stop()
     
@@ -234,17 +233,17 @@ def draw_game(state):
     Отрисовка всех игровых элементов на поле: сетки, змейки, еды, бонусов и препятствий.
     """
     DISPLAYSURF.fill(BLACK)
-    
+    # Отрисовка сетки
     if settings["grid"]:
         for x in range(0, WIDTH, BLOCK_SIZE):
             pygame.draw.line(DISPLAYSURF, (30, 30, 30), (x, 0), (x, HEIGHT))
         for y in range(0, HEIGHT, BLOCK_SIZE):
             pygame.draw.line(DISPLAYSURF, (30, 30, 30), (0, y), (WIDTH, y))
 
-    # Snake
+    # Змейка
     scolor = tuple(settings["snake_color"])
     if state.shield_active:
-        # shield border
+        # щит
         head = state.snake_body[0]
         pygame.draw.rect(DISPLAYSURF, CYAN, (head[0]-2, head[1]-2, BLOCK_SIZE+4, BLOCK_SIZE+4), 2)
         
@@ -252,7 +251,7 @@ def draw_game(state):
         color = scolor if i == 0 else (max(0, scolor[0]-50), max(0, scolor[1]-50), max(0, scolor[2]-50))
         pygame.draw.rect(DISPLAYSURF, color, (pos[0], pos[1], BLOCK_SIZE, BLOCK_SIZE))
         
-    # Foods
+    # Еда
     for f in state.foods:
         color = {1: GREEN, 2: YELLOW, 3: BLUE}.get(f.weight, RED)
         pygame.draw.rect(DISPLAYSURF, color, (f.pos[0], f.pos[1], BLOCK_SIZE, BLOCK_SIZE))
@@ -262,14 +261,14 @@ def draw_game(state):
         pygame.draw.rect(DISPLAYSURF, DARK_RED, (state.poison_food.pos[0], state.poison_food.pos[1], BLOCK_SIZE, BLOCK_SIZE))
         draw_text("X", font_small, WHITE, DISPLAYSURF, state.poison_food.pos[0] + BLOCK_SIZE//2, state.poison_food.pos[1] + BLOCK_SIZE//2, center=True)
         
-    # PowerUp
+    # Бонусы
     if state.powerup:
         p_color = {'speed': CYAN, 'slow': MAGENTA, 'shield': WHITE}[state.powerup.type]
         pygame.draw.circle(DISPLAYSURF, p_color, (state.powerup.pos[0] + BLOCK_SIZE//2, state.powerup.pos[1] + BLOCK_SIZE//2), BLOCK_SIZE//2)
         letter = {'speed': 'F', 'slow': 'S', 'shield': 'D'}[state.powerup.type]
         draw_text(letter, font_small, BLACK, DISPLAYSURF, state.powerup.pos[0] + BLOCK_SIZE//2, state.powerup.pos[1] + BLOCK_SIZE//2, center=True)
 
-    # Obstacles
+    # Препятствия
     for obs in state.obstacles:
         pygame.draw.rect(DISPLAYSURF, GRAY, (obs[0], obs[1], BLOCK_SIZE, BLOCK_SIZE))
         
@@ -282,7 +281,7 @@ def game_loop(username, pb):
     """
     Главный игровой цикл: обработка событий управления, обновление логики и отрисовка.
     """
-    state = GameState(username, pb)
+    state = GameState(username, pb) # Создаём новое состояние игры
     clock = pygame.time.Clock()
     
     if settings["sound"]:

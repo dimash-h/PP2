@@ -48,9 +48,9 @@ def flood_fill(surface, position, fill_color):
     """
     Алгоритм заливки (Flood-Fill).
     Ищет соседние пиксели такого же цвета и закрашивает их.
-    Использует get_at() и set_at() как требовалось в задании.
+
     """
-    target_color = surface.get_at(position)[:3]  # берём только RGB, без alpha
+    target_color = surface.get_at(position)[:3]  #берём только RGB
     fill_color_rgb = fill_color[:3] if len(fill_color) == 4 else fill_color
     
     # Если цвет уже такой, какой нам нужен - ничего не делаем
@@ -60,7 +60,7 @@ def flood_fill(surface, position, fill_color):
     width = surface.get_width()
     height = surface.get_height()
     
-    # Используем стек (список) для алгоритма поиска в глубину (DFS)
+    # Стек — список пикселей которые нужно обработать
     stack = [position]
     surface.set_at(position, fill_color)
     

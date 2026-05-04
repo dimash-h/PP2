@@ -4,12 +4,13 @@ import os
 from config import load_config
 from connect import connect
 
-
-# Создание таблиц
+#-------------------------------
+#СОЗДАНИЕ ТАБЛИЦ
+#-------------------------------
 
 def create_tables(conn):
     """Create all tables if they don't exist."""
-    cur = conn.cursor()
+    cur = conn.cursor() #cursor — объект для отправки SQL запросов в БД
 
     # Основная таблица контактов 
     cur.execute("""
@@ -54,7 +55,9 @@ def create_tables(conn):
     cur.close()
 
 
-# Создание процедур и функций
+#-------------------------------
+#СОЗДАНИЕ ПРОЦЕДУР И ФУНКЦИЙ
+#-------------------------------
 
 def create_procedures(conn):
     """Create all stored procedures and functions."""
@@ -71,21 +74,21 @@ def create_procedures(conn):
     cur.execute("DROP PROCEDURE IF EXISTS move_to_group(VARCHAR, VARCHAR)")
     conn.commit()
 
-    # Вставить или обновить контакт (Practice 8)
+    # Вставить или обновить контакт
     cur.execute("""
         CREATE OR REPLACE PROCEDURE upsert_contact(p_name VARCHAR, p_phone VARCHAR)
         AS $$
         BEGIN
-            IF EXISTS (SELECT 1 FROM contacts WHERE name = p_name) THEN
+            IF EXISTS (SELECT 1 FROM contacts WHERE name = p_name) THEN 
                 UPDATE contacts SET phone = p_phone WHERE name = p_name;
             ELSE
                 INSERT INTO contacts(name, phone) VALUES (p_name, p_phone);
             END IF;
         END;
         $$ LANGUAGE plpgsql
-    """)
+    """)#1 проверка на существование
 
-    # Массовая вставка с проверкой (Practice 8)
+    # Массовая вставка с проверкой 
     cur.execute(r"""
         CREATE OR REPLACE PROCEDURE insert_many_contacts(names VARCHAR[], phones VARCHAR[])
         AS $$
@@ -102,7 +105,7 @@ def create_procedures(conn):
         $$ LANGUAGE plpgsql
     """)
 
-    # Удаление по имени или телефону (Practice 8)
+    # Удаление по имени или телефону 
     cur.execute("""
         CREATE OR REPLACE PROCEDURE delete_contact(p_value VARCHAR)
         AS $$
@@ -112,7 +115,7 @@ def create_procedures(conn):
         $$ LANGUAGE plpgsql
     """)
 
-    # Поиск по имени или телефону (Practice 8)
+    # Поиск по имени или телефону 
     cur.execute("""
         CREATE OR REPLACE FUNCTION search_contacts_by_pattern(pattern VARCHAR)
         RETURNS TABLE (id INTEGER, name VARCHAR, phone VARCHAR)
@@ -127,7 +130,7 @@ def create_procedures(conn):
         $$ LANGUAGE plpgsql
     """)
 
-    # Пагинация (Practice 8)
+    # Пагинация 
     cur.execute("""
         CREATE OR REPLACE FUNCTION get_contacts_paginated(p_limit INTEGER, p_offset INTEGER)
         RETURNS TABLE (id INTEGER, name VARCHAR, phone VARCHAR, email VARCHAR, birthday DATE, group_name VARCHAR)
@@ -206,8 +209,9 @@ def create_procedures(conn):
     conn.commit()
     cur.close()
 
-
-# Вставка контактов
+#-------------------
+#ВСТАВКА КОНТАКТОВ
+#-------------------
 
 def insert_contact(conn, name, phone):
     """Insert or update a contact."""
@@ -291,7 +295,9 @@ def insert_from_csv(conn, filename):
     print(f"Imported from {filename}")
 
 
-# Показ контактов
+#-------------------
+#ПОКАЗ КОНТАКТОВ
+#-------------------
 
 def get_all_contacts(conn, limit=50, offset=0):
     """Get contacts with pagination."""
@@ -303,7 +309,7 @@ def get_all_contacts(conn, limit=50, offset=0):
 
 
 def search_by_pattern(conn, pattern):
-    """Search by name or phone (Practice 8)."""
+    """Search by name or phone."""
     cur = conn.cursor()
     cur.execute("SELECT * FROM search_contacts_by_pattern(%s)", (pattern,))
     rows = cur.fetchall()
@@ -349,7 +355,9 @@ def print_contacts_full(contacts, conn):
         print()
 
 
-# Обновление и удаление
+#-------------------
+#ОБНОВЛЕНИЕ И УДАЛЕНИЕ
+#-------------------
 
 def update_phone(conn, name, new_phone):
     """Update phone by name."""
@@ -387,7 +395,9 @@ def delete_by_phone(conn, phone):
     print(f"Deleted by phone: {phone}")
 
 
-# Расширенный поиск и фильтрация (TSIS 1)
+#----------------------
+#Расширенный поиск и фильтрация (TSIS 1)
+#----------------------
 
 def extended_search(conn, query):
     """Search all fields: name, phone, email, all numbers."""
@@ -548,7 +558,7 @@ def export_to_json(conn, filename):
         })
 
     with open(filename, "w", encoding="utf-8") as f:
-        json.dump(result, f, ensure_ascii=False, indent=2)
+        json.dump(result, f, ensure_ascii=False, indent=2) #кириллица не экранируется;красивый отступ
 
     print(f"Exported {len(result)} contacts to {filename}")
 
@@ -573,7 +583,7 @@ def import_from_json(conn, filename):
         # Проверяем дубликат
         cur = conn.cursor()
         cur.execute("SELECT id FROM contacts WHERE name = %s", (name,))
-        existing = cur.fetchone()
+        existing = cur.fetchone() #fetchone — возвращает одну строку
         cur.close()
 
         if existing:
@@ -624,11 +634,13 @@ def import_from_json(conn, filename):
     print("JSON import complete.")
 
 
-# Главное меню
+#--------------------
+#ГЛАВНОЕ МЕНЮ
+#--------------------
 
 def main():
-    config = load_config()
-    conn = connect(config)
+    config = load_config() #загрузка конфигурации как словарь с дб ини
+    conn = connect(config) #установление соединения с бд
     if conn is None:
         return
 
@@ -704,7 +716,7 @@ def main():
             cur.execute("SELECT name FROM groups ORDER BY name")
             groups = [g[0] for g in cur.fetchall()]
             cur.close()
-            print("Groups:", ", ".join(groups))
+            print("Groups:", ", ".join(groups)) # Показываем доступные группы
             g = input("Filter by group: ")
             results = filter_by_group(conn, g)
             print_contacts_full(results, conn)

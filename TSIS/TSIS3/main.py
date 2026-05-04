@@ -1,5 +1,5 @@
 """
-TSIS 3: Главный файл для запуска игры Racer.
+Главный файл для запуска игры Racer.
 Управляет состоянием игры и переключением экранов.
 """
 import pygame
@@ -12,7 +12,7 @@ def main():
     pygame.init()
     screen = pygame.display.set_mode(
         (racer.SCREEN_WIDTH, racer.SCREEN_HEIGHT), 
-        pygame.DOUBLEBUF, 
+        pygame.DOUBLEBUF,  #двойная буферизация,кадр рисуется в памяти,потом сразу на экран
         vsync=1
     )
     pygame.display.set_caption("Racer Game")
@@ -24,7 +24,7 @@ def main():
     username = ""
     last_score, last_distance, last_coins = 0, 0, 0
     
-    # UI Elements
+    # UI Elements-кнопки,текст
     btn_play = ui.Button(100, 200, 200, 50, "Play")
     btn_leaderboard = ui.Button(100, 270, 200, 50, "Leaderboard")
     btn_settings = ui.Button(100, 340, 200, 50, "Settings")
@@ -45,7 +45,7 @@ def main():
     btn_back_set = ui.Button(100, 500, 200, 50, "Back")
 
     while True:
-        screen.fill(ui.WHITE)
+        screen.fill(ui.WHITE) #стираем прошлый кадр
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -61,7 +61,7 @@ def main():
                     sys.exit()
                     
             elif state == "USERNAME":
-                if input_user.handle_event(event): 
+                if input_user.handle_event(event): #Поле ввода обрабатывает нажатия клавиш
                     pass
                 if btn_start.handle_event(event) and len(input_user.text) > 0:
                     username = input_user.text
@@ -93,7 +93,7 @@ def main():
                 
             elif state == "LEADERBOARD":
                 if btn_back_ld.handle_event(event): state = "MENU"
-
+        #Отрисовка
         if state == "MENU":
             ui.draw_text(screen, "MAIN MENU", 200, 100, center=True)
             btn_play.draw(screen)

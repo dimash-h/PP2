@@ -1,5 +1,5 @@
 """
-Логика игры Racer: машинки, монетки, враги, препятствия, бонусы и т.д.
+Логика игры Racer: машинки, монетки, враги, препятствия, бонусы 
 """
 import pygame
 import random
@@ -19,31 +19,33 @@ CYAN   = (0, 255, 255)
 PURPLE = (128, 0, 128)
 GRAY   = (100, 100, 100)
 
+#Спрайт — это игровой объект
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, color_name):
         super().__init__()
-        self.image_orig = pygame.image.load('assets/Player.png').convert_alpha()
+        self.image_orig = pygame.image.load('assets/Player.png').convert_alpha() #оптимизация для прозрачности
         self.image = self.image_orig.copy()
         
-        # Tinting the car based on settings
+        # Окрашиваем машину в выбранный цвет
         tint_color = WHITE
         if color_name == "Red": tint_color = (255, 100, 100)
         elif color_name == "Blue": tint_color = (100, 100, 255)
         elif color_name == "Green": tint_color = (100, 255, 100)
         
         if tint_color != WHITE:
-            tint_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA)
+            tint_surface = pygame.Surface(self.image.get_size(), pygame.SRCALPHA) #прозрачную поверхность
             tint_surface.fill((*tint_color, 255))
-            self.image.blit(tint_surface, (0,0), special_flags=pygame.BLEND_MULT)
+            self.image.blit(tint_surface, (0,0), special_flags=pygame.BLEND_MULT) #накладываем цвет
 
-        self.rect = self.image.get_rect()
-        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 80)
+        self.rect = self.image.get_rect() 
+        self.rect.center = (SCREEN_WIDTH // 2, SCREEN_HEIGHT - 80) 
         
     def move(self):
         pressed_keys = pygame.key.get_pressed()
-        if pressed_keys[pygame.K_LEFT] and self.rect.left > 0:
+        if pressed_keys[pygame.K_LEFT] and self.rect.left > 0: #влево на 5 пикселей
             self.rect.move_ip(-5, 0)
-        if pressed_keys[pygame.K_RIGHT] and self.rect.right < SCREEN_WIDTH:
+        if pressed_keys[pygame.K_RIGHT] and self.rect.right < SCREEN_WIDTH: #вправо на 5 пикселей
             self.rect.move_ip(5, 0)
 
 class Enemy(pygame.sprite.Sprite):
@@ -52,11 +54,9 @@ class Enemy(pygame.sprite.Sprite):
         self.image = pygame.image.load('assets/Enemy.png').convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), -100)
-        self.speed_offset = speed_offset
+        self.speed_offset = speed_offset #машины едут с разной скоростью
 
-    def move(self, base_speed):
-        # Машины врагов (Enemy.png) обычно повернуты "лицом" вниз (встречный трафик).
-        # Поэтому они должны ехать быстрее дороги, чтобы казалось, что они едут навстречу.
+    def move(self, base_speed): #базовая скорость движения
         enemy_speed = self.speed_offset + 3 
         screen_speed = base_speed + enemy_speed
             
@@ -67,10 +67,10 @@ class Enemy(pygame.sprite.Sprite):
 class Coin(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.weight = random.choices([1, 2, 3], weights=[0.6, 0.3, 0.1])[0]
+        self.weight = random.choices([1, 2, 3], weights=[0.6, 0.3, 0.1])[0] #60% будет 1
         radius = 15 if self.weight == 1 else 20 if self.weight == 2 else 25
         color = YELLOW if self.weight == 1 else ORANGE if self.weight == 2 else GREEN
-        self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+        self.image = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA) # Прозрачная поверхность под кружок
         pygame.draw.circle(self.image, color, (radius, radius), radius)
         self.rect = self.image.get_rect()
         self.rect.center = (random.randint(40, SCREEN_WIDTH - 40), -50)
@@ -83,7 +83,7 @@ class Coin(pygame.sprite.Sprite):
 class Obstacle(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        # 0: Oil spill, 1: Barrier
+        # 0 = лужа масла, 1 = барьер
         self.type = random.choice([0, 1])
         if self.type == 0:
             self.image = pygame.Surface((60, 40), pygame.SRCALPHA)
@@ -107,7 +107,7 @@ class PowerUp(pygame.sprite.Sprite):
         
         font = pygame.font.SysFont("Verdana", 20, bold=True)
         if self.type == "Nitro": 
-            self.image.fill(CYAN)
+            self.image.fill(CYAN) #Голубой фон
             text = font.render("N", True, BLACK)
         elif self.type == "Shield": 
             self.image.fill(PURPLE)
@@ -127,6 +127,8 @@ class PowerUp(pygame.sprite.Sprite):
         if self.rect.top > SCREEN_HEIGHT:
             self.kill()
 
+#Главная функция игры
+
 def run_game(screen, settings, username):
     clock = pygame.time.Clock()
     bg_image = pygame.image.load('assets/AnimatedStreet.png').convert()
@@ -140,14 +142,18 @@ def run_game(screen, settings, username):
     
     player = Player(settings.get("car_color", "Red"))
     
+    # Группы спрайтов — для отрисовки и проверки столкновений
+
     enemies = pygame.sprite.Group()
     coins = pygame.sprite.Group()
     obstacles = pygame.sprite.Group()
     powerups = pygame.sprite.Group()
     all_sprites = pygame.sprite.Group(player)
     
+    #USEREVENT — пользовательские таймеры
+    
     SPAWN_ENEMY = pygame.USEREVENT + 1
-    pygame.time.set_timer(SPAWN_ENEMY, max(500, int(2000 - base_speed*100)))
+    pygame.time.set_timer(SPAWN_ENEMY, max(500, int(2000 - base_speed*100)))  # Чем быстрее — тем чаще
     SPAWN_COIN = pygame.USEREVENT + 2
     pygame.time.set_timer(SPAWN_COIN, 1500)
     SPAWN_OBST = pygame.USEREVENT + 3
@@ -165,6 +171,8 @@ def run_game(screen, settings, username):
     
     running = True
     
+    # Звук и музыка
+
     if settings.get("sound"):
         try:
             pygame.mixer.music.load('assets/background.wav')
@@ -175,8 +183,10 @@ def run_game(screen, settings, username):
     else:
         crash_sound = None
 
+    # Главный игровой цикл
+    
     while running:
-        dt = clock.tick(60)
+        dt = clock.tick(60) #dt = время прошедшее с прошлого кадра
         
         current_speed = base_speed
         if active_powerup == "Nitro":
@@ -196,7 +206,7 @@ def run_game(screen, settings, username):
                 sys.exit()
             if event.type == SPAWN_ENEMY:
                 e = Enemy(random.randint(0, 2))
-                while pygame.sprite.spritecollideany(e, all_sprites):
+                while pygame.sprite.spritecollideany(e, all_sprites): #спавним пока не столкнется с кем то
                     e.rect.center = (random.randint(40, SCREEN_WIDTH - 40), -100)
                 enemies.add(e)
                 all_sprites.add(e)
@@ -219,11 +229,13 @@ def run_game(screen, settings, username):
                 powerups.add(p)
                 all_sprites.add(p)
 
-        # Scrolling Background
+        # Движение фона
         bg_y += current_speed
         bg_y %= SCREEN_HEIGHT
         screen.blit(bg_image, (0, bg_y))
         screen.blit(bg_image, (0, bg_y - SCREEN_HEIGHT))
+
+        # Движение всех спрайтов
 
         player.move()
         for e in enemies: e.move(current_speed)
@@ -231,9 +243,12 @@ def run_game(screen, settings, username):
         for o in obstacles: o.move(current_speed)
         for p in powerups: p.move(current_speed)
 
+        # Отрисовка всех спрайтов
+
         all_sprites.draw(screen)
+
+        # Щит
         
-        # Shield visual
         if active_powerup == "Shield":
             pygame.draw.circle(screen, PURPLE, player.rect.center, 40, 3)
             
@@ -247,7 +262,7 @@ def run_game(screen, settings, username):
         screen.blit(text_coins, (10, 60))
         screen.blit(text_lives, (10, 85))
 
-        # Check Win Condition
+        # Проверка победы
         if distance >= 10000:
             running = False
 
@@ -258,8 +273,7 @@ def run_game(screen, settings, username):
                 p_text = font.render(f"Shield Active", True, PURPLE)
             screen.blit(p_text, (SCREEN_WIDTH - 150, 10))
 
-        # Collisions
-        # PowerUps
+        # Collisions - столкновения
         hit_pwr = pygame.sprite.spritecollideany(player, powerups)
         if hit_pwr:
             if hit_pwr.type == "Nitro":
@@ -272,15 +286,15 @@ def run_game(screen, settings, username):
                 # Не сбрасываем active_powerup, так как Repair - мгновенный бонус (instant)
             hit_pwr.kill()
 
-        # Coins
+        # Монеты
         hit_coins = pygame.sprite.spritecollide(player, coins, True)
         for c in hit_coins:
             coins_collected += c.weight
             if coins_collected % 20 == 0:  # Каждые 20 монет увеличиваем скорость
-                base_speed += 1  # Только целые числа для идеальной плавности
-                pygame.time.set_timer(SPAWN_ENEMY, max(400, int(2000 - base_speed*100)))
+                base_speed += 1 
+                pygame.time.set_timer(SPAWN_ENEMY, max(400, int(2000 - base_speed*100))) # Враги спавнятся чаще
 
-        # Obstacles and Enemies
+        # Препятствия и враги
         hit_obs = pygame.sprite.spritecollideany(player, obstacles)
         hit_enemy = pygame.sprite.spritecollideany(player, enemies)
         
@@ -306,5 +320,5 @@ def run_game(screen, settings, username):
 
         pygame.display.flip()
         
-    pygame.time.delay(1000)
+    pygame.time.delay(1000) # Пауза 1 секунда
     return score, distance, coins_collected

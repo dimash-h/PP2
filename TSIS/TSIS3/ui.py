@@ -1,6 +1,8 @@
 import pygame
 import persistence
 
+#Дизайн
+
 pygame.font.init()
 FONT = pygame.font.SysFont("Verdana", 40)
 SMALL_FONT = pygame.font.SysFont("Verdana", 20)
@@ -18,7 +20,7 @@ class Button:
         self.rect = pygame.Rect(x, y, w, h)
         self.text = text
         self.color = color
-        self.hover_color = hover_color
+        self.hover_color = hover_color #цвет кнопки когда мышь навели
         self.is_hovered = False
 
     def draw(self, surface):
@@ -31,9 +33,9 @@ class Button:
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
-            self.is_hovered = self.rect.collidepoint(event.pos)
+            self.is_hovered = self.rect.collidepoint(event.pos) #если навели курсор на кнопку
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if self.is_hovered and event.button == 1:
+            if self.is_hovered and event.button == 1: 
                 return True
         return False
 
@@ -64,7 +66,7 @@ class TextInput:
             elif event.key == pygame.K_BACKSPACE:
                 self.text = self.text[:-1]
             else:
-                if len(self.text) < 15:
+                if len(self.text) < 15: #не больше 15 символов
                     self.text += event.unicode
         return False
 

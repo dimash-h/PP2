@@ -1,6 +1,5 @@
 """
-TSIS 2: Paint (Рисовалка).
-Программа для рисования различных фигур: линии, прямоугольники, круги, треугольники, ромбы и текст.
+TSIS 2: Paint (Рисовалка)
 """
 import pygame
 from datetime import datetime
@@ -30,10 +29,10 @@ colorPURPLE = (160, 32, 240)
 clock = pygame.time.Clock()
 
 LMBpressed = False
-THICKNESS = 5
+THICKNESS = 5 #Толщина кисти
 
 currX = 0
-currY = 0
+currY = 0 
 prevX = 0
 prevY = 0
 
@@ -41,10 +40,10 @@ current_color = colorBLACK
 tool = "brush"
 
 # Переменные для текста
-text_mode = False
+text_mode = False 
 current_text = ""
 text_pos = (0, 0)
-# Используем стандартный шрифт Pygame, он самый надежный и не выдаст черных квадратов
+# Используем стандартный шрифт Pygame
 font_text = pygame.font.Font(None, 40) 
 
 save_message_timer = 0
@@ -57,18 +56,18 @@ while running:
             running = False
             
         if event.type == pygame.KEYDOWN:
-            # Сохранение (Ctrl+S или Command+S для Mac)
+            # Сохранение (Ctrl+S)
             mods = pygame.key.get_mods()
             if event.key == pygame.K_s and (mods & pygame.KMOD_CTRL or mods & pygame.KMOD_META):
                 timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                save_dir = os.path.dirname(os.path.abspath(__file__))
+                save_dir = os.path.dirname(os.path.abspath(__file__)) #Папка где лежит файл
                 save_path = os.path.join(save_dir, f"paint_{timestamp}.png")
                 
-                # Сохраняем холст вместе с недописанным текстом, если он есть
+                # Копируем холст
                 save_surface = base_layer.copy()
                 if text_mode and current_text:
                     text_surf = font_text.render(current_text, True, current_color)
-                    save_surface.blit(text_surf, text_pos)
+                    save_surface.blit(text_surf, text_pos) #Рисуем на копии
                     
                 pygame.image.save(save_surface, save_path)
                 save_message_timer = pygame.time.get_ticks()
@@ -86,12 +85,12 @@ while running:
                 elif event.key == pygame.K_BACKSPACE:
                     current_text = current_text[:-1]
                 else:
-                    # Игнорируем системные символы (чтобы не было "квадратиков" или мусора)
+                    # Игнорируем системные символы
                     if event.unicode.isprintable():
                         current_text += event.unicode
                 continue
             else:
-                # Очистка экрана (Clear) кнопкой X
+                # Очистка экрана (Clear)
                 if event.key == pygame.K_x:
                     base_layer.fill(colorWHITE)
                     screen.fill(colorWHITE)
@@ -138,11 +137,11 @@ while running:
             elif tool == "fill":
                 flood_fill(base_layer, event.pos, current_color)
             elif tool == "brush":
-                # Радиус кружка должен быть чуть больше половины толщины линии
+                # Радиус кружка
                 radius = (THICKNESS + 1) // 2
                 pygame.draw.circle(base_layer, current_color, (currX, currY), radius)
             elif tool == "eraser":
-                # Ластик работает так же, только он толще (THICKNESS * 4) и рисует белым
+                # Ластик работает так же, только он толще
                 radius = (THICKNESS * 4 + 1) // 2
                 pygame.draw.circle(base_layer, colorWHITE, (currX, currY), radius)
 
@@ -200,7 +199,7 @@ while running:
             currX = event.pos[0]
             currY = event.pos[1]
             
-            # Окончательная отрисовка фигур ПРЯМО НА BASE_LAYER (важно для Mac Retina и сохранения!)
+            # Окончательная отрисовка фигур ПРЯМО НА BASE_LAYER
             if tool == "rectangle":
                 pygame.draw.rect(base_layer, current_color, calculate_rect((prevX, prevY), (currX, currY)), THICKNESS)
             elif tool == "square":
@@ -218,8 +217,8 @@ while running:
             elif tool == "line":
                 pygame.draw.line(base_layer, current_color, (prevX, prevY), (currX, currY), THICKNESS)
 
-    # Обновление экрана: всегда показываем актуальную базу перед UI
-    screen.blit(base_layer, (0, 0))
+    
+    screen.blit(base_layer, (0, 0)) # Каждый кадр копируем холст на экран
 
     # Если мы рисуем превью фигуры, рисуем его поверх базы только на screen
     if LMBpressed and tool in ("rectangle", "square", "circle", "right_tri", "equil_tri", "rhombus", "line"):
@@ -240,20 +239,20 @@ while running:
         elif tool == "line":
             pygame.draw.line(screen, current_color, (prevX, prevY), (currX, currY), THICKNESS)
 
-    # ==========================================
-    # UI-ДИЗАЙН (ТЕМНЫЙ СТИЛЬ С КРУПНЫМ ТЕКСТОМ)
-    # ==========================================
+    
+    # UI
+  
     ui_height = 85
     pygame.draw.rect(screen, (50, 50, 50), (0, 0, WIDTH, ui_height)) # Серый фон
     pygame.draw.line(screen, (200, 200, 200), (0, ui_height), (WIDTH, ui_height), 2)
     pygame.draw.line(screen, (100, 100, 100), (0, 42), (WIDTH, 42), 1) # Разделитель строк
     pygame.draw.line(screen, (100, 100, 100), (0, 64), (WIDTH, 64), 1) # Разделитель инструментов и цветов
 
-    font_large = pygame.font.SysFont("Verdana", 16, bold=True) # Немного уменьшили для компактности
-    font_small = pygame.font.SysFont("Verdana", 11, bold=True) # Чтобы все тулсы 100% влезли
+    font_large = pygame.font.SysFont("Verdana", 16, bold=True) 
+    font_small = pygame.font.SysFont("Verdana", 11, bold=True) 
 
-    # --- Строка 1 ---
-    # TOOL: PENCIL
+
+   
     tool_text = font_large.render(f"TOOL: {tool.upper()}", True, colorWHITE)
     screen.blit(tool_text, (15, 10))
     
@@ -262,7 +261,7 @@ while running:
     pygame.draw.rect(screen, current_color, (box_x, 8, 26, 26))
     pygame.draw.rect(screen, colorWHITE, (box_x, 8, 26, 26), 2)
     
-    # BRUSH SIZE
+    # SIZE
     brush_text = font_large.render("BRUSH SIZE:", True, colorWHITE)
     screen.blit(brush_text, (box_x + 40, 10))
     
@@ -291,7 +290,7 @@ while running:
         mode_text = font_large.render("(Press ENTER)", True, blink_color)
         screen.blit(mode_text, (b_x + 320, 10))
 
-    # --- Строка 2 (Инструменты) ---
+    # Инструменты
     tools_arr = ["[P] Pencil", "[L] Line", "[F] Fill", "[T] Text", "[E] Eraser", "[R] Rect", "[G] Circle", "[Q] Square", "[D] R.Tri", "[Y] Eq.Tri", "[H] Rhomb"]
     x_offset = 12
     for t_str in tools_arr:
@@ -302,7 +301,7 @@ while running:
             pygame.draw.line(screen, (150, 150, 150), (x_offset, 44), (x_offset, 62), 1)
             x_offset += 12
 
-    # --- Строка 3 (Цвета) ---
+    # Цвета
     colors_arr = ["[Z] Black", "[W] Red", "[C] Green", "[V] Blue", "[B] Yellow", "[N] Orange", "[M] Purple"]
     x_offset = 12
     for c_str in colors_arr:
@@ -312,16 +311,15 @@ while running:
         if c_str != colors_arr[-1]:
             pygame.draw.line(screen, (150, 150, 150), (x_offset, 66), (x_offset, 83), 1)
             x_offset += 12
-    # ==========================================
 
-    # Отрисовка текста при наборе (ПОВЕРХ ВСЕГО)
+    # Отрисовка текста при наборе 
     if text_mode and text_pos:
         display_text = current_text + "|" if (pygame.time.get_ticks() // 500) % 2 == 0 else current_text
-        # Добавляем светло-серый фон во время набора текста, чтобы его было 100% видно
+        # Добавляем светло-серый фон во время набора текста
         text_surf = font_text.render(display_text, True, current_color, (220, 220, 220))
         screen.blit(text_surf, text_pos)
 
-    # Уведомление об успешном сохранении (показывается 2 секунды)
+    # Уведомление об успешном сохранении 
     if save_message_timer > 0 and pygame.time.get_ticks() - save_message_timer < 2000:
         save_msg = font_large.render("IMAGE SAVED TO TSIS2 FOLDER!", True, (50, 255, 50))
         bg_rect = save_msg.get_rect(center=(WIDTH//2, HEIGHT//2))

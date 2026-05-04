@@ -47,7 +47,7 @@ def save_score(username, score, level):
     conn = get_connection()
     cursor = conn.cursor()
     
-    # Insert or get player
+    
     cursor.execute("SELECT id FROM players WHERE username = %s", (username,))
     row = cursor.fetchone()
     if row:
@@ -56,11 +56,11 @@ def save_score(username, score, level):
         cursor.execute("INSERT INTO players (username) VALUES (%s) RETURNING id", (username,))
         player_id = cursor.fetchone()[0]
     
-    # Insert session
+    
     cursor.execute("""
         INSERT INTO game_sessions (player_id, score, level_reached)
         VALUES (%s, %s, %s)
-    """, (player_id, score, level))
+    """, (player_id, score, level)) # Сохраняем сессию с результатами
     
     conn.commit()
     cursor.close()
@@ -68,7 +68,7 @@ def save_score(username, score, level):
 
 def get_top_10():
     """
-    Получение 10 лучших результатов для таблицы рекордов (Leaderboard).
+    Получение 10 лучших результатов для таблицы рекордов 
     """
     try:
         conn = get_connection()
